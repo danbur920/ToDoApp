@@ -1,0 +1,146 @@
+﻿@using BlazorApp1.Client.Components
+@using BlazorApp1.Shared.Models
+@using BlazorApp1.Client.Pages
+@using static System.Net.WebRequestMethods
+
+
+@if (Show)
+{
+    <div class="my-modal">
+        <div class="my-modal-content">
+            <span @onclick="OnCancel" class="close">&times;</span>
+            <h3 class="my-modal__heading">
+                @Title
+            </h3>
+            <p class="my-modal__body">
+                @Body
+            </p>
+
+            @if (Type == "AddPerson")
+            {
+                <div>
+                    <label for="firstName">Imie: </label>
+                    <input @bind="Person.FirstName" id="firstName" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="lastName">Nazwisko:</label>
+                    <input @bind="Person.LastName" id="lastName" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="email">Email:</label>
+                    <input @bind="Person.Email" id="email" type="text" style="display: block; margin-bottom: 10px;" />
+                </div>
+            }
+
+            @if (Type == "UpdatePerson")
+            {
+                <div>
+                    <p for="Id:">@Person.Id</p>
+                    <label for="firstName">Imię:</label>
+                    <input @bind="Person.FirstName" id="firstName" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="lastName">Nazwisko:</label>
+                    <input @bind="Person.LastName" id="lastName" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="email">Email:</label>
+                    <input @bind="Person.Email" id="email" type="text" style="display: block; margin-bottom: 10px;" />
+                </div>
+            }
+
+            @if(Type == "AddTask")
+            {
+                <div>
+                    <label for="title">Tytuł zadania: </label>
+                    <input @bind="Task.Title" id="title" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="description">Opis:</label>
+                    <input @bind="Task.Description" id="description" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="isCompleted">Stan zadania (zaznacz jeśli zakończone):</label>
+                    <input @bind="Task.IsCompleted" id="isCompleted" type="checkbox" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="deadline">Termin wykonania:</label>
+                    <input @bind="Task.Deadline" id="deadline" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="categoryId">Kategoria zadania:</label>
+                    <select id="categoryId" @bind="Task.CategoryId" style="display: block; margin-bottom: 10px;">
+                        @foreach (var category in Categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+
+                    <label for="personId">Wykonawca:</label>
+                    <select id="personId" @bind="Task.PersonId" style="display: block; margin-bottom: 10px;">
+                        @foreach (var person in Persons)
+                        {
+                            <option value="@person.Id">@person.FirstName @person.LastName</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            @if (Type == "UpdateTask")
+            {
+                <div>
+                    <label for="title">Tytuł zadania: </label>
+                    <input @bind="Task.Title" id="title" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="description">Opis:</label>
+                    <input @bind="Task.Description" id="description" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="isCompleted">Stan zadania (zaznacz jeśli zakończone):</label>
+                    <input @bind="Task.IsCompleted" id="isCompleted" type="checkbox" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="deadline">Termin wykonania:</label>
+                    <input @bind="Task.Deadline" id="deadline" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="categoryId">Kategoria zadania:</label>
+                    <select id="categoryId" @bind="Task.CategoryId" style="display: block; margin-bottom: 10px;">
+                        @foreach (var category in Categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+
+                    <label for="personId">Wykonawca:</label>
+                    <select id="personId" @bind="Task.PersonId"style="display: block; margin-bottom: 10px;">
+                        @foreach (var person in Persons)
+                        {
+                            <option value="@person.Id">@person.FirstName @person.LastName</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            @if(Type == "AddCategory")
+            {
+                 <div>
+                    <label for="name">Nazwa kategorii: </label>
+                    <input @bind="Category.Name" id="name" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="description">Opis kategorii: </label>
+                    <input @bind="Category.Description" id="decription" type="text" style="display: block; margin-bottom: 10px;" />
+                </div>
+            }
+
+            @if (Type == "UpdateCategory")
+            {
+                <div>
+                    <label for="name">Nazwa kategorii: </label>
+                    <input @bind="Category.Name" id="name" type="text" style="display: block; margin-bottom: 10px;" />
+
+                    <label for="description">Opis kategorii: </label>
+                    <input @bind="Category.Description" id="decription" type="text" style="display: block; margin-bottom: 10px;" />
+                </div>
+            }
+
+            <div class="my-modal__btns">
+                <button @onclick="OnCancel" type="button" class="my-modal__cancel">
+                    Anuluj
+                </button>
+                <button @onclick="OnAccept" type="button" class="my-modal__accept">
+                    Zatwierdź
+                </button>
+            </div>
+        </div>
+    </div>
+}

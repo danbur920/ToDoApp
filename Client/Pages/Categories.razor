@@ -1,0 +1,215 @@
+﻿@page "/categories"
+@using BlazorApp1.Client.Components
+@using BlazorApp1.Shared
+@using BlazorApp1.Shared.Models
+@using System.Text.Json
+@using System.Text
+@inject HttpClient Http
+
+<PageTitle>Kategorie</PageTitle>
+
+<h1>Kategorie</h1>
+
+<p>Poniżej znajdują się główne kategorie zadań, które wykonują nasi pracownicy</p>
+
+@if (categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nazwa</th>
+                <th>Opis</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in categories)
+            {
+                <tr>
+                    <td>@category.Id</td>
+                    <td>@category.Name</td>
+                    <td>@category.Description</td>
+                    <td>
+                        <button type="button" @onclick="() => ShowModalDeleteCategory(category.Id)">Usuń</button>
+                        <button type="button" @onclick="() => ShowModalUpdateCategory(category.Id)">Modyfikuj</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<button @onclick="ShowModalAddCategory" type="button" >Dodaj kategorię</button>
+
+<Modal Show="_showDialogAddCategory"
+       Title="Dodawanie"
+       Body="Dodaj nową kategorię:"
+       Type="AddCategory"
+       Category="categoryToAdd"
+       OnAccept="ModalAcceptAddCategory"
+       OnCancel="ModalCancelAddCategory">
+</Modal>
+
+<Modal Show="_showDialogDeleteCategory"
+       Title="Usuwanie"
+       Body="Czy na pewno chcesz usunąć kategorię?"
+       Type="DeleteCategory"
+       OnAccept="ModalAcceptDeleteCategory"
+       OnCancel="ModalCancelDeleteCategory">
+</Modal>
+
+<Modal Show="_showDialogUpdateCategory"
+       Title="Modyfikacja"
+       Body="Zaktualizuj dane kategorii:"
+       Type="UpdateCategory"
+       Category="categoryToUpdate"
+       OnAccept="ModalAcceptUpdateCategory"
+       OnCancel="ModalCancelUpdateCategory">
+</Modal>
+
+@if (_modalAcceptedAddCategory)
+{
+    <p>Kategoria została pomyślnie dodana!</p>
+}
+
+@if (_modalAcceptedDeleteCategory)
+{
+    <p>Kategoria została pomyślnie usunięta!</p>
+}
+
+@if (_modalAcceptedUpdateCategory)
+{
+    <p>Kategoria została zaktualizowana!</p>
+}
+
+@code {
+    private Category[]? categories;
+    private string errorMessage;
+
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    {
+        try
+        {
+            categories = await Http.GetFromJsonAsync<Category[]>("/categories/all");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Błąd podczas pobierania danych: {ex.Message}";
+        }
+    }
+
+    private async System.Threading.Tasks.Task RefreshData()
+    {
+        categories = await Http.GetFromJsonAsync<Category[]>("/categories/all");
+        StateHasChanged();
+    }
+
+    // Modal add category:
+
+    private bool _showDialogAddCategory = false;
+    private bool _modalAcceptedAddCategory = false;
+    Category categoryToAdd = new Category();
+
+    private void ShowModalAddCategory()
+    {
+        _showDialogAddCategory = true;
+    }
+
+    private async System.Threading.Tasks.Task AddCategory(Category categoryToAdd)
+    {
+        var response = await Http.PostAsJsonAsync("/categories/add", categoryToAdd);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshData();
+            _modalAcceptedAddCategory = true;
+        }
+    }
+
+    private async System.Threading.Tasks.Task ModalAcceptAddCategory(MouseEventArgs e)
+    {
+        await AddCategory(categoryToAdd);
+        _showDialogAddCategory = false;
+    }
+
+    private void ModalCancelAddCategory(MouseEventArgs e)
+    {
+        _showDialogAddCategory = false;
+    }
+
+    // Modal delete category:
+
+    private bool _showDialogDeleteCategory = false;
+    private int _modalCategoryId;
+    private bool _modalAcceptedDeleteCategory = false;
+
+    private void ShowModalDeleteCategory(int categoryId)
+    {
+        _modalCategoryId = categoryId; 
+        _showDialogDeleteCategory = true;
+    }
+
+    private async System.Threading.Tasks.Task DeleteCategory(int categoryId)
+    {
+        var response = await Http.DeleteAsync($"/categories/delete/{categoryId}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshData();
+            _modalAcceptedDeleteCategory = true;
+        }
+
+    }
+
+    private async System.Threading.Tasks.Task ModalAcceptDeleteCategory(MouseEventArgs e)
+    {
+        await DeleteCategory(_modalCategoryId);
+        _showDialogDeleteCategory = false;
+    }
+
+    private void ModalCancelDeleteCategory(MouseEventArgs e)
+    {
+        _showDialogDeleteCategory = false;
+    }
+
+    // Modal update category:
+
+    private bool _showDialogUpdateCategory = false;
+    private bool _modalAcceptedUpdateCategory = false;
+    Category categoryToUpdate = new Category();
+
+    private void ShowModalUpdateCategory(int categoryId)
+    {
+        _modalCategoryId = categoryId;
+        _showDialogUpdateCategory = true;
+        categoryToUpdate = categories.FirstOrDefault(x => x.Id == categoryId);
+    }
+
+    private async System.Threading.Tasks.Task UpdateCategory(Category category)
+    {
+        var json = JsonSerializer.Serialize(category);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await Http.PatchAsync($"/categories/update", content);
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshData();
+            _modalAcceptedUpdateCategory = true;
+        }
+    }
+
+    private async System.Threading.Tasks.Task ModalAcceptUpdateCategory(MouseEventArgs e)
+    {
+        await UpdateCategory(categoryToUpdate);
+        _showDialogUpdateCategory = false;
+    }
+
+    private void ModalCancelUpdateCategory(MouseEventArgs e)
+    {
+        _showDialogUpdateCategory = false;
+    }
+}

@@ -1,0 +1,269 @@
+﻿@page "/tasks"
+@using BlazorApp1.Shared
+@using BlazorApp1.Shared.Models
+@using BlazorApp1.Client.Components;
+@using System.Text.Json
+@using System.Text
+@inject HttpClient Http
+
+<PageTitle>Zadania</PageTitle>
+
+<h1>Zadania</h1>
+
+<p>Aktualne zadania</p>
+
+@if (tasks == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Treść</th>
+                <th>Opis</th>
+                <th>Wykonawca</th>
+                <th>Deadline</th>
+                <th>Kategoria</th>
+                <th>Status zadania</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var task in tasks)
+            {
+                var (statusDescription, fontColor) = GetCompletionStatus(task);
+                <tr>
+                    <td>@task.Id</td>
+                    <td>@task.Title</td>
+                    <td>@task.Description</td>
+                    <td>@GetPersonName(persons, task)</td>
+                    <td>@task.Deadline</td>
+                    <td>@GetCategoryName(categories, task)</td>
+                    <td style="color: @fontColor">@statusDescription</td>
+                    <td>
+                        <button @onclick="() => ShowModalDeleteTask(task.Id)">Usuń</button>
+                        <button @onclick="() => ShowModalUpdateTask(task.Id)">Modyfikuj</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+}
+<button @onclick="ShowModalAddTask" type="button">
+    Dodaj zadanie
+</button>
+
+<Modal Show="_showDialogAddTask"
+       Title="Dodawanie"
+       Body="Dodaj nowe zadanie:"
+       Type="AddTask"
+       Task="taskToAdd"
+       Categories="categories"
+       Persons="persons"
+       OnAccept="ModalAcceptAddTask"
+       OnCancel="ModalCancelAddTask">
+</Modal>
+
+<Modal Show="_showDialogDeleteTask"
+       Title="Usuwanie"
+       Body="Czy na pewno chcesz usunąć zadanie?"
+       Type="DeleteTask"
+       OnAccept="ModalAcceptDeleteTask"
+       OnCancel="ModalCancelDeleteTask">
+</Modal>
+
+<Modal Show="_showDialogUpdateTask"
+       Title="Modyfikacja"
+       Body="Zaktualizuj dane zadania:"
+       Type="UpdateTask"
+       Task="taskToUpdate"
+       Categories="categories"
+       Persons="persons"
+       OnAccept="ModalAcceptUpdateTask"
+       OnCancel="ModalCancelUpdateTask">
+</Modal>
+
+@if (_modalAcceptedAddTask)
+{
+    <p>Zadanie zostało dodane!</p>
+}
+
+@if (_modalAcceptedDeleteTask)
+{
+    <p>Zadanie zostało usunięte!</p>
+}
+
+@if (_modalAcceptedUpdateTask)
+{
+    <p>Zadanie zostało zaktualizowane!</p>
+}
+
+@code {
+    private BlazorApp1.Shared.Models.Task[]? tasks;
+    private Category[]? categories;
+    private Person[]? persons;
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    {
+        tasks = await Http.GetFromJsonAsync<BlazorApp1.Shared.Models.Task[]>("/task/all");
+        categories = await Http.GetFromJsonAsync<Category[]>("/categories/all");
+        persons = await Http.GetFromJsonAsync<Person[]>("/person/all");
+    }
+
+    // funkcja tuple, która zwraca dwie wartosci
+    private (string StatusDescription, string FontColor) GetCompletionStatus(BlazorApp1.Shared.Models.Task task)
+    {
+        var currentDate = DateTime.Now;
+
+        if (!task.IsCompleted && task.Deadline < currentDate)
+        {
+            return ("Opóźnienie", "red");
+        }
+        else if (task.IsCompleted)
+        {
+            return ("Zakończone", "green");
+        }
+        else
+        {
+            return ("W trakcie", "blue");
+        }
+    }
+
+    private string GetCategoryName(Category[] categories, BlazorApp1.Shared.Models.Task task)
+    {
+        if (categories != null)
+        {
+            var category = categories.FirstOrDefault(x => x.Id == task.CategoryId);
+            return category.Name;
+        }
+        else
+            return "-";
+    }
+
+    private string GetPersonName(Person[] persons, BlazorApp1.Shared.Models.Task task)
+    {
+        if (persons != null)
+        {
+            var person = persons.FirstOrDefault(x => x.Id == task.PersonId);
+            return person.FirstName + " " + person.LastName;
+        }
+        else
+            return "-";
+    }
+
+    private async System.Threading.Tasks.Task RefreshData()
+    {
+        tasks = await Http.GetFromJsonAsync<BlazorApp1.Shared.Models.Task[]>("/task/all");
+        StateHasChanged();
+    }
+
+    // Button dodaj zadanie:
+
+    // Modal add task: -----------------------------------------------------
+
+    private bool _showDialogAddTask = false;
+    private bool _modalAcceptedAddTask = false;
+    BlazorApp1.Shared.Models.Task taskToAdd = new BlazorApp1.Shared.Models.Task();
+
+    private void ShowModalAddTask()
+    {
+        _showDialogAddTask = true;
+    }
+
+    private async System.Threading.Tasks.Task AddTask(BlazorApp1.Shared.Models.Task taskToAdd)
+    {      
+        var response = await Http.PostAsJsonAsync("/task/add", taskToAdd);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshData();
+            _modalAcceptedAddTask = true;
+        }
+    }
+
+    private async System.Threading.Tasks.Task ModalAcceptAddTask(MouseEventArgs e)
+    {
+        await AddTask(taskToAdd);
+        _showDialogAddTask = false;
+    }
+
+    private void ModalCancelAddTask(MouseEventArgs e)
+    {
+        _showDialogAddTask = false;
+    }
+
+    // Modal delete task: ---------------------------------------
+
+    private bool _showDialogDeleteTask = false;
+    private int _modalTaskId;
+    private bool _modalAcceptedDeleteTask = false;
+
+    private void ShowModalDeleteTask(int taskId)
+    {
+        _modalTaskId = taskId;
+        _showDialogDeleteTask = true;
+    }
+
+    private async System.Threading.Tasks.Task DeleteTask(int taskId)
+    {
+        var response = await Http.DeleteAsync($"/task/delete/{taskId}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshData();
+            _modalAcceptedDeleteTask = true;
+        }
+
+    }
+
+    private async System.Threading.Tasks.Task ModalAcceptDeleteTask(MouseEventArgs e)
+    {
+        await DeleteTask(_modalTaskId);
+        _showDialogDeleteTask = false;
+    }
+
+    private void ModalCancelDeleteTask(MouseEventArgs e)
+    {
+        _showDialogDeleteTask = false;
+    }
+
+    // Modal update task: -----------------------------------------------------
+
+    private bool _showDialogUpdateTask = false;
+    private bool _modalAcceptedUpdateTask = false;
+    BlazorApp1.Shared.Models.Task taskToUpdate = new BlazorApp1.Shared.Models.Task();
+
+    private void ShowModalUpdateTask(int taskId)
+    {
+        _modalTaskId = taskId;
+        _showDialogUpdateTask = true;
+        taskToUpdate = tasks.FirstOrDefault(x => x.Id == _modalTaskId);
+    }
+
+    private async System.Threading.Tasks.Task UpdateTask(BlazorApp1.Shared.Models.Task task)
+    {
+        var json = JsonSerializer.Serialize(task);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await Http.PatchAsync($"/task/update", content);
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshData();
+            _modalAcceptedUpdateTask = true;
+        }
+    }
+
+    private async System.Threading.Tasks.Task ModalAcceptUpdateTask(MouseEventArgs e)
+    {
+        await UpdateTask(taskToUpdate);
+        _showDialogUpdateTask = false;
+    }
+
+    private void ModalCancelUpdateTask(MouseEventArgs e)
+    {
+        _showDialogUpdateTask = false;
+    }
+}
+

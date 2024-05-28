@@ -1,0 +1,210 @@
+﻿@page "/workers"
+@using BlazorApp1.Client.Components
+@using BlazorApp1.Shared
+@using BlazorApp1.Shared.Models
+@using System.Text.Json
+@using System.Text
+@inject HttpClient Http
+
+<PageTitle>Pracownicy</PageTitle>
+
+<h1>Pracownicy</h1>
+
+<p>Wszyscy pracownicy w naszej firmie</p>
+
+@if (persons == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Imie</th>
+                <th>Nazwisko</th>
+                <th>Email</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var person in persons)
+            {
+                <tr>
+                    <td>@person.Id</td>
+                    <td>@person.FirstName</td>
+                    <td>@person.LastName</td>
+                    <td>@person.Email</td>
+                    <td>
+                        <button @onclick="() => ShowModalDelete(person.Id)">Usuń</button>
+                        <button @onclick="() => ShowModalUpdate(person.Id)">Modyfikuj</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<button @onclick="ShowModalAdd">Dodaj pracownika</button>
+
+@if (_modalAcceptedDelete)
+{
+    <p>Pracownik został usunięty!</p>
+}
+
+@if (_modalAcceptedUpdate)
+{
+    <p>Pracownik został zaktualizowany!</p>
+}
+
+@if (_modalAcceptedAdd)
+{
+    @*TimeConfirmation("Pracownik został dodany!");*@
+    <p>Pracownik został dodany!</p>
+}
+
+<Modal Show="_showDialogDelete"
+       Title="Potwierdź"
+       Body="Czy na pewno chcesz usunąć wskazanego pracownika?"
+       OnAccept="ModalAcceptDelete"
+       OnCancel="ModalCancelDelete">
+</Modal>
+
+
+<Modal Show="_showDialogUpdate"
+       Title="Modyfikacja"
+       Body="Zaktualizuj dane pracownika:"
+       Type="UpdatePerson"
+       Person="personToUpdate"
+       OnAccept="ModalAcceptUpdate"
+       OnCancel="ModalCancelUpdate">
+</Modal>
+
+<Modal Show="_showDialogAdd"
+       Title="Dodaj"
+       Body="Dodaj nowego pracownika:"
+       Type="AddPerson"
+       Person="personToAdd"
+       OnAccept="ModalAcceptAdd"
+       OnCancel="ModalCancelAdd">
+</Modal>
+
+@code {
+    private Person[]? persons;
+
+    protected override async System.Threading.Tasks.Task OnInitializedAsync()
+    {
+        persons = await Http.GetFromJsonAsync<Person[]>("/person/all");
+    }
+
+    private async System.Threading.Tasks.Task RefreshData()
+    {
+        persons = await Http.GetFromJsonAsync<Person[]>("/person/all");
+        StateHasChanged();
+    }
+
+
+
+    private async System.Threading.Tasks.Task DeletePerson(int personId)
+    {
+        var response = await Http.DeleteAsync($"/person/delete/{personId}");
+
+        if (response.IsSuccessStatusCode)
+            await RefreshData();
+    }
+
+    // Modal delete: ----------------------------------
+
+    private bool _showDialogDelete = false;
+    private int _modalPersonId;
+    private bool _modalAcceptedDelete = false;
+
+    private void ShowModalDelete(int personId)
+    {
+        _modalPersonId = personId;
+        _showDialogDelete = true;
+    }
+
+    private async System.Threading.Tasks.Task ModalAcceptDelete(MouseEventArgs e)
+    {
+        await DeletePerson(_modalPersonId);
+        _modalAcceptedDelete = true;
+        _showDialogDelete = false;
+    }
+
+    private void ModalCancelDelete(MouseEventArgs e)
+    {
+        _showDialogDelete = false;
+    }
+
+    // Modal update: -----------------------------------------------------
+
+    private bool _showDialogUpdate = false;
+    private bool _modalAcceptedUpdate = false;
+    Person personToUpdate = new Person();
+
+    private void ShowModalUpdate(int personId)
+    {
+        _modalPersonId = personId;
+        _showDialogUpdate = true;
+        personToUpdate = persons.FirstOrDefault(x => x.Id == personId);
+    }
+
+    private async System.Threading.Tasks.Task UpdatePerson(Person person)
+    {
+        var json = JsonSerializer.Serialize(person);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await Http.PatchAsync($"/person/update", content);
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshData();
+            _modalAcceptedUpdate = true;
+        }
+    }
+
+    private async System.Threading.Tasks.Task ModalAcceptUpdate(MouseEventArgs e)
+    {
+        await UpdatePerson(personToUpdate);
+        _showDialogUpdate = false;
+    }
+
+    private void ModalCancelUpdate(MouseEventArgs e)
+    {
+        _showDialogUpdate = false;
+    }
+
+
+    // Modal add: -----------------------------------------------------
+
+    private bool _showDialogAdd = false;
+    private bool _modalAcceptedAdd = false;
+    Person personToAdd = new Person();
+
+    private void ShowModalAdd()
+    {
+        _showDialogAdd = true;
+    }
+
+    private async System.Threading.Tasks.Task AddPerson(Person person)
+    {
+        var response = await Http.PostAsJsonAsync("/person/add", person);
+        if (response.IsSuccessStatusCode)
+        {
+            _modalAcceptedAdd = true;
+            await RefreshData();
+        }
+    }
+
+    private async System.Threading.Tasks.Task ModalAcceptAdd(MouseEventArgs e)
+    {
+        await AddPerson(personToAdd);
+        _showDialogAdd = false;
+    }
+
+    private void ModalCancelAdd(MouseEventArgs e)
+    {
+        _showDialogAdd = false;
+    }
+
+}

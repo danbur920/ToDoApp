@@ -1,0 +1,53 @@
+is_global = true
+build_property.TargetFramework = net6.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = BlazorApp1.Client
+build_property.RootNamespace = BlazorApp1.Client
+build_property.ProjectDir = C:\Users\danbu\Desktop\ToSort\Projekt_PTUSWPH\BlazorApp1\Client\
+build_property.RazorLangVersion = 6.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\danbu\Desktop\ToSort\Projekt_PTUSWPH\BlazorApp1\Client
+build_property._RazorSourceGeneratorDebug = 
+
+[C:/Users/danbu/Desktop/ToSort/Projekt_PTUSWPH/BlazorApp1/Client/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danbu/Desktop/ToSort/Projekt_PTUSWPH/BlazorApp1/Client/Pages/Categories.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2F0ZWdvcmllcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danbu/Desktop/ToSort/Projekt_PTUSWPH/BlazorApp1/Client/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danbu/Desktop/ToSort/Projekt_PTUSWPH/BlazorApp1/Client/Pages/Tasks.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFza3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danbu/Desktop/ToSort/Projekt_PTUSWPH/BlazorApp1/Client/Pages/Workers.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcV29ya2Vycy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danbu/Desktop/ToSort/Projekt_PTUSWPH/BlazorApp1/Client/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/danbu/Desktop/ToSort/Projekt_PTUSWPH/BlazorApp1/Client/Components/Modal.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xNb2RhbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-tdw01iv4r7
+
+[C:/Users/danbu/Desktop/ToSort/Projekt_PTUSWPH/BlazorApp1/Client/Shared/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-s8xsnq6cv2
+
+[C:/Users/danbu/Desktop/ToSort/Projekt_PTUSWPH/BlazorApp1/Client/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-aw7s1uks9t
